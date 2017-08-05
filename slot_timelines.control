@@ -1,0 +1,7 @@
+# test_slot_timelines extension
+comment = 'utility for slot timeline following and logical decoding'
+default_version = '1.0'
+module_pathname = '$libdir/slot_timelines'
+relocatable = true
+requires = 'postgres_fdw, dblink, adminpack'
+
