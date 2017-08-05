@@ -97,3 +97,6 @@ echo " sync_logical_slot.database = 'edb'
  systemctl edb-as-9.6 stop
  systemctl edb-as-9.6 start
  ```
+# Limitation
+Currently this module works for synchronoizing the logical slots for one database. 
+In future we will remove this limitaiton.
