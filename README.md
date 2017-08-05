@@ -9,6 +9,7 @@ This module provides a mechanism to synchronize the logical replication slots, u
 2. gcc
 3. make
 4. location of pg_config of EPAS should be in PATH environment variable
+5. Set max_worker_processes parameter to allow background worker in EPAS
 
 # Installation
 
@@ -79,5 +80,20 @@ echo "sync_logical_slot.database = 'edb'" >> $PGDATA/postgresql.conf
 echo " sync_logical_slot.database = 'edb'
  sync_logical_slot.master_fdw = 'master_fdw'
  shared_preload_libraries = '$libdir/sync_logical_slot'" >>$PGDATA/postgresql.conf
- ```
  
+ systemctl edb-as-9.6 stop
+ systemctl edb-as-9.6 start
+ ```
+
+Build a synchronous streaming replication standby. Please refer following link:
+http://vibhork.blogspot.in/2011/10/asynchronoussynchronous-streaming.html
+
+And enable the following parameter as on master for standby:
+```
+echo "sync_logical_slot.database = 'edb'" >> $PGDATA/postgresql.conf
+echo " sync_logical_slot.database = 'edb'
+ sync_logical_slot.master_fdw = 'master_fdw'
+ shared_preload_libraries = '$libdir/sync_logical_slot'" >>$PGDATA/postgresql.conf
+ systemctl edb-as-9.6 stop
+ systemctl edb-as-9.6 start
+ ```
