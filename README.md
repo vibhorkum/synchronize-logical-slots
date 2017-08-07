@@ -90,7 +90,6 @@ http://vibhork.blogspot.in/2011/10/asynchronoussynchronous-streaming.html
 
 And enable the following parameter as on master for standby:
 ```
-echo "sync_logical_slot.database = 'edb'" >> $PGDATA/postgresql.conf
 echo " sync_logical_slot.database = 'edb'
  sync_logical_slot.master_fdw = 'master_fdw'
  shared_preload_libraries = '$libdir/sync_logical_slot'" >>$PGDATA/postgresql.conf
