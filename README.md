@@ -3,7 +3,7 @@ Module: Sync logical Slot
 
 This module provides a mechanism to synchronize the logical replication slots, using test_decoding, to synchronous streaming replication standbys
 
-# Prerquisit
+# Prerquisite
 
 1. EDB Advanced Server 9.6 installation using RPMs. To install EDB Advanced Server 9.6 using RPMs, refer EDB Documents
 2. gcc
