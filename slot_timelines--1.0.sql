@@ -1,5 +1,5 @@
 -- complain if script is sourced in psql, rather than via CREATE EXTENSION
-\echo Use "CREATE EXTENSION test_slot_timelines" to load this file. \quit
+\echo Use "CREATE EXTENSION slot_timelines" to load this file. \quit
 
 CREATE OR REPLACE FUNCTION pg_create_logical_slot_timelines(slot_name text, plugin text)
 RETURNS void
