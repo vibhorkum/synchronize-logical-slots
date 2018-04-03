@@ -188,7 +188,7 @@ BEGIN
 	cmd := 'COPY slot_timeline_table 
 			FROM PROGRAM '||quote_literal('find -L pg_xlog/'
 			||$1
-			||'*  -maxdepth 1 -type l ! -exec test -e {} \; -print|xargs rm');
+			||'*  -maxdepth 1 -type l ! -exec test -e {} \; -print|xargs rm -f');
 	EXECUTE cmd;
 	RETURN true;
 	    
