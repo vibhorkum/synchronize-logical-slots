@@ -1,12 +1,12 @@
 /*--------------------------------------------------------------------------
  *
- * sync_logical.c
+ * synchronize_logical_slots.c
  *		Run SQL commands using a background worker.
  *
  * Copyright (C) 2014, PostgreSQL Global Development Group
  *
  * IDENTIFICATION
- *		contrib/sync_logical/sync_logical.c
+ *		contrib/synchronize_logical_slots/synchronize_logical_slots.c
  *
  * -------------------------------------------------------------------------
  */
