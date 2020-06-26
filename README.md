@@ -63,7 +63,7 @@ echo "shared_preload_libraries = '$libdir/synchronize_logical_slots_launcher'" >
  ```
 And enable the following parameter on master and standbys:
 ```
-echo "shared_preload_libraries = '$libdir/sync_logical_slot'" >>$PGDATA/postgresql.conf
+echo "shared_preload_libraries = '$libdir/synchronize_logical_slots_launcher'" >>$PGDATA/postgresql.conf
  ```
 # Limitation
 Currently this module works for synchronizing the logical replication slots for **SYNCHRONOUS STANDBY**. 
