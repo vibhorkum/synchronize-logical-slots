@@ -10,6 +10,8 @@ This module provides a mechanism to synchronize the logical replication slots, u
 3. make
 4. location of pg_config of EDB Advanced Server should be in PATH environment variable
 5. Set max_worker_processes parameter to allow background worker in EPAS
+6. Make sure you have pg_hba entry for standbys on master/primary for replication user to connect.
+7. Make sure replication user has `pg_read_all_stats` privileges.
 
 # Installation
 
