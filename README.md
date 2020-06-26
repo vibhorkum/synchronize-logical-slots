@@ -5,10 +5,10 @@ This module provides a mechanism to synchronize the logical replication slots, u
 
 # Prerquisite
 
-1. EDB Advanced Server 9.6 installation using RPMs. To install EDB Advanced Server 9.6 using RPMs, refer EDB Documents
+1. EDB Advanced Server 12.x installation using RPMs. To install EDB Advanced Server 12.x using RPMs, refer EDB Documents
 2. gcc
 3. make
-4. location of pg_config of EPAS should be in PATH environment variable
+4. location of pg_config of EDB Advanced Server should be in PATH environment variable
 5. Set max_worker_processes parameter to allow background worker in EPAS
 
 # Installation
@@ -17,31 +17,22 @@ Following are the steps for installing this module:
 
 1. compile the module using following command on EPAS primary and synchronous standby
 ```
-export PATH=/usr/edb/as9.6/bin:$PATH
+export PATH=/usr/edb/as12/bin:$PATH
 make 
 make install
 ```
 2. Connect to the database which has logical replication slot and execute following command to enable to module
 ```
-CREATE EXTENSION slot_timelines CASCADE;
-```
-3. Using function following function create FDW server for master:
-```
-SELECT failover_logical_slot_init('${MASTER_IP}','${PGPORT}',current_database,'superuser','super_user_password');
-```
-Example:
-```
-SELECT failover_logical_slot_init('${MASTER_IP}','5432','edb','enterprisedb','edb');
+psql -U enterprisedb -c "CREATE EXTENSION synchronize_logical_slots CASCADE;" -d postgres
 ```
 3. Update the following parameters in postgresql.conf for master and synchronous standbys:
 ```
-sync_logical_slot.database = 'edb'  # name of database which has logical replication slot
-shared_preload_libraries = 'sync_logical_slot' # sync_logical_slot library for background worker
+shared_preload_libraries = '$libdir/synchronize_logical_slots_launcher' # sync_logical_slot library for background worker
 ```
 4. Restart the master and synchronous standby service
 ```
-systemctl edb-as-9.6 stop
-systemctl edb-as-9.6 start
+systemctl edb-as-12 stop
+systemctl edb-as-12 start
 ```
 
 # Example
@@ -97,5 +88,5 @@ echo " sync_logical_slot.database = 'edb'
  systemctl edb-as-9.6 start
  ```
 # Limitation
-Currently this module works for synchronoizing the logical slots for one database. 
+Currently this module works for synchronizing the logical replication slots for **SYNCHRONOUS STANDBY**. 
 In future we will remove this limitaiton.
