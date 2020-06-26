@@ -225,6 +225,51 @@ $function$;
 
 COMMENT ON FUNCTION synchronize_logical_slots() IS 'Function for synchronizing the slots';
 
+CREATE OR REPLACE FUNCTION synchronize_logical_slots_launcher()
+RETURNS TEXT
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS
+$function$
+DECLARE
+    extension_exists BOOLEAN;
+    extension_sql TEXT := $SQL$ SELECT CASE WHEN COUNT(1) > 0 THEN true
+                                            ELSE false
+                                        END AS extension_status
+                                FROM pg_catalog.pg_extension
+                                WHERE extname = 'synchronize_logical_slots';
+                          $SQL$;
+    db_name TEXT;
+    result_message TEXT;
+BEGIN
+    FOR db_name IN SELECT datname
+                   FROM pg_catalog.pg_database
+                   WHERE datname NOT IN ('template1','template0')
+    LOOP
+            RAISE NOTICE '%', extension_sql;
+            SELECT extension_status INTO extension_exists
+            FROM sync_logical_result(
+                        sync_logical_launch( extension_sql,
+                                                           db_name
+                                                       )
+                                        ) AS foo (extension_status BOOLEAN);
+
+           IF extension_exists THEN
+                SELECT message INTO result_message
+                FROM sync_logical_result(
+                      sync_logical_launch(
+                          'SELECT synchronize_logical_slots()',
+                          db_name)
+                      ) AS foo(message TEXT);
+                RAISE NOTICE 'performing logical slots synchronization for %',
+                            db_name;
+           END IF;
+    END LOOP;
+    RETURN 'Executed the synchronize_logical_slots_launcher';
+END;
+$function$;
+
+COMMENT ON FUNCTION synchronize_logical_slots_launcher() IS 'A wrapper for synchronize logical slots';
 
 CREATE FUNCTION sync_logical_launch(sql pg_catalog.text, dbname pg_catalog.text,
 					   queue_size pg_catalog.int4 DEFAULT 65536)
@@ -238,9 +283,15 @@ CREATE FUNCTION sync_logical_result(pid pg_catalog.int4)
 CREATE FUNCTION sync_logical_detach(pid pg_catalog.int4)
     RETURNS pg_catalog.void STRICT
 	AS 'MODULE_PATHNAME' LANGUAGE C;
+
+
 REVOKE ALL ON FUNCTION sync_logical_launch(pg_catalog.text, pg_catalog.text, pg_catalog.int4)
 	FROM public;
 REVOKE ALL ON FUNCTION sync_logical_result(pg_catalog.int4)
 	FROM public;
 REVOKE ALL ON FUNCTION sync_logical_detach(pg_catalog.int4)
 	FROM public;
+REVOKE ALL ON FUNCTION is_standby_synchronous() FROM PUBLIC;
+REVOKE ALL ON FUNCTION synchronize_logical_slots() FROM PUBLIC;
+REVOKE ALL ON FUNCTION synchronize_logical_slots_launcher() FROM PUBLIC;
+
