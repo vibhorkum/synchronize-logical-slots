@@ -281,15 +281,6 @@ _PG_init(void)
     worker.bgw_flags = BGWORKER_SHMEM_ACCESS | BGWORKER_BACKEND_DATABASE_CONNECTION;
     worker.bgw_start_time = BgWorkerStart_ConsistentState;
 
-    /*
-     * bgw_main is considered a footgun, per commit
-     * 2113ac4cbb12 in postgresql.git. Deprecate its
-     * usage here and use the safer method by setting
-     * bgw_function_name and bgw_library_name. PG10 gets
-     * rid of bgw_main completly, but we need to retain
-     * it here to get the initialization correct.
-     */
-
     snprintf(worker.bgw_library_name, BGW_MAXLEN - 1, "synchronize_logical_slots_launcher");
     snprintf(worker.bgw_function_name, BGW_MAXLEN - 1, "synchronize_logical_slots_launcher_main");
 
