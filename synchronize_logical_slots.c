@@ -126,7 +126,6 @@ sync_logical_launch(PG_FUNCTION_ARGS)
 	shm_toc_estimator e;
 	shm_toc    *toc;
     char	   *sqlp;
-	char	   *gucstate;
 	shm_mq	   *mq;
 	BackgroundWorker worker;
 	BackgroundWorkerHandle *worker_handle;
@@ -173,10 +172,6 @@ sync_logical_launch(PG_FUNCTION_ARGS)
 	sqlp[sql_len] = '\0';
 	shm_toc_insert(toc, SYNC_LOGICAL_KEY_SQL, sqlp);
 
-	/* Store GUC state in dynamic shared memory. */
-	gucstate = shm_toc_allocate(toc, guc_len);
-	SerializeGUCState(guc_len, gucstate);
-	shm_toc_insert(toc, SYNC_LOGICAL_KEY_GUC, gucstate);
 
 	/* Establish message queue in dynamic shared memory. */
 	mq = shm_mq_create(shm_toc_allocate(toc, (Size) queue_size),
@@ -783,7 +778,6 @@ sync_logical_worker_main(Datum main_arg)
 	shm_toc    *toc;
 	sync_logical_fixed_data *fdata;
 	char	   *sql;
-	char	   *gucstate;
 	shm_mq	   *mq;
 	shm_mq_handle *responseq;
 
@@ -817,12 +811,10 @@ sync_logical_worker_main(Datum main_arg)
 	#if PG_VERSION_NUM < 100000
 		fdata = shm_toc_lookup(toc, SYNC_LOGICAL_KEY_FIXED_DATA);
 		sql = shm_toc_lookup(toc, SYNC_LOGICAL_KEY_SQL);
-		gucstate = shm_toc_lookup(toc, SYNC_LOGICAL_KEY_GUC);
 		mq = shm_toc_lookup(toc, SYNC_LOGICAL_KEY_QUEUE);
 	#else
                 fdata = shm_toc_lookup(toc, SYNC_LOGICAL_KEY_FIXED_DATA,false);
                 sql = shm_toc_lookup(toc, SYNC_LOGICAL_KEY_SQL,false);
-                gucstate = shm_toc_lookup(toc, SYNC_LOGICAL_KEY_GUC,false);
                 mq = shm_toc_lookup(toc, SYNC_LOGICAL_KEY_QUEUE,false);
 
 	#endif
@@ -860,11 +852,6 @@ sync_logical_worker_main(Datum main_arg)
 		fdata->authenticated_user_id != GetAuthenticatedUserId())
 		ereport(ERROR,
 			(errmsg("user or database renamed during sync_logical startup")));
-	/* Restore GUC values from launching backend. */
-	StartTransactionCommand();
-	RestoreGUCState(gucstate);
-	CommitTransactionCommand();
-
 	/* Restore user ID and security context. */
 	SetUserIdAndSecContext(fdata->current_user_id, fdata->sec_context);
 
