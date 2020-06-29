@@ -10,7 +10,7 @@ This module provides a mechanism to synchronize the logical replication slots to
 3. make
 4. openssl-devel
 5. location of pg_config of EDB Advanced Server should be in PATH environment variable
-6. Set max_worker_processes parameter to allow background worker in EPAS
+6. Set max_worker_processes parameter to allow background worker in EPAS.
 7. Make sure you have pg_hba entry for standbys on master/primary for replication user to connect.
 8. Make sure replication user has `pg_read_all_stats` privileges.
 
@@ -77,8 +77,5 @@ And enable the following parameter on master and standbys:
 echo "shared_preload_libraries = '$libdir/synchronize_logical_slots_launcher'" >>$PGDATA/postgresql.conf
  ```
 # Limitation
-Currently this module works for synchronizing the logical replication slots for **SYNCHRONOUS STANDBY**. 
-
-# Caveat
-
-If one of the standby gets promoted, then please make sure to remove the unused logical replication slots manually.
+* Currently this module works for synchronizing the logical replication slots for **SYNCHRONOUS STANDBY**. 
+* If one of the standby gets promoted, then please make sure to remove the unused logical replication slots manually.
