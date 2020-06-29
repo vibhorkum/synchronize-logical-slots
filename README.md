@@ -1,4 +1,4 @@
-Module: Sync logical Slot
+Module: Synchronize logical slots
 =========================================
 
 This module provides a mechanism to synchronize the logical replication slots to synchronous streaming replication standbys
