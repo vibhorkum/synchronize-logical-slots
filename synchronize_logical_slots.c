@@ -109,6 +109,21 @@ PG_FUNCTION_INFO_V1(sync_logical_result);
 PG_FUNCTION_INFO_V1(sync_logical_detach);
 
 void sync_logical_worker_main(Datum);
+static void requireSuperuser(void);
+
+
+/*
+ *  * check for superuser, if its not super user then error
+ *   */
+static void
+requireSuperuser(void)
+{
+        if (!superuser())
+                 ereport(ERROR,
+                           (errcode(ERRCODE_INSUFFICIENT_PRIVILEGE),
+                           (errmsg("only superuser may access generic file functions"))));
+}
+
 
 /*
  * Start a dynamic background worker to run a user-specified SQL command.
@@ -134,6 +149,7 @@ sync_logical_launch(PG_FUNCTION_ARGS)
 	shm_mq_handle *responseq;
 	MemoryContext	oldcontext;
 
+    requireSuperuser();
 	/* Ensure a valid queue size. */
 	if (queue_size < 0 || ((uint64) queue_size) < shm_mq_minimum_size)
 		ereport(ERROR,
@@ -270,6 +286,7 @@ sync_logical_result(PG_FUNCTION_ARGS)
 	StringInfoData	msg;
 	sync_logical_result_state *state;
 
+    requireSuperuser();
 	/* First-time setup. */
 	if (SRF_IS_FIRSTCALL())
 	{
@@ -631,6 +648,7 @@ sync_logical_detach(PG_FUNCTION_ARGS)
 	int32		pid = PG_GETARG_INT32(0);
 	sync_logical_worker_info *info;
 
+    requireSuperuser();
 	info = find_worker_info(pid);
 	if (info == NULL)
 		ereport(ERROR,
