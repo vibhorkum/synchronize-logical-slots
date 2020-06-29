@@ -24,7 +24,14 @@ export PATH=/usr/edb/as12/bin:$PATH
 make 
 make install
 ```
-2. Connect to the database which has logical replication slot and execute following command to enable to module
+In case you don't have LLVM libraries on the system, you can use following commands for installing this module:
+```
+export PATH=/usr/edb/as12/bin:$PATH
+with_llvm=false make -e
+with_llvm=false make install -e
+```
+
+2. Connect to the `postgres` and databases which has logical replication slot and execute following command to enable to module
 ```
 psql -U enterprisedb -c "CREATE EXTENSION synchronize_logical_slots CASCADE;" -d postgres
 ```
@@ -52,7 +59,11 @@ gcc -std=gnu99 -Wall -Wmissing-prototypes -Wpointer-arith -Wdeclaration-after-st
 /bin/install -c -m 644 .//synchronize_logical_slots--1.0.sql  '/usr/edb/as12/share/extension/'
 /bin/install -c -m 755  synchronize_logical_slots.so synchronize_logical_slots_launcher.so '/usr/edb/as12/lib/'
 
-psql -p 5432 -c "CREATE EXTENSION synchronize_logical_slots CASCADE;"
+psql -p 5432 -c "CREATE EXTENSION synchronize_logical_slots CASCADE;" -d postgres
+NOTICE:  installing required extension "dblink"
+CREATE EXTENSION
+
+psql -p 5432 -c "CREATE EXTENSION synchronize_logical_slots CASCADE;" -d edb
 NOTICE:  installing required extension "dblink"
 CREATE EXTENSION
 
@@ -67,4 +78,7 @@ echo "shared_preload_libraries = '$libdir/synchronize_logical_slots_launcher'" >
  ```
 # Limitation
 Currently this module works for synchronizing the logical replication slots for **SYNCHRONOUS STANDBY**. 
-In future we will remove this limitaiton.
+
+# Caveat
+
+If one of the standby gets promoted, then please make sure to remove the unused logical replication slots manually.
