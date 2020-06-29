@@ -1,7 +1,7 @@
 Module: Sync logical Slot
 =========================================
 
-This module provides a mechanism to synchronize the logical replication slots, using test_decoding, to synchronous streaming replication standbys
+This module provides a mechanism to synchronize the logical replication slots to synchronous streaming replication standbys
 
 # Prerquisite
 
