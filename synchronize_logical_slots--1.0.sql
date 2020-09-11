@@ -108,12 +108,14 @@ AS
     slot_sql TEXT := 'SELECT pg_replication_slots '
                       || 'FROM pg_catalog.pg_replication_slots '
                       || 'WHERE slot_type = '
-                      || quote_literal('logical');
+                      || quote_literal('logical')
+                      || ' AND temporary = false';
 
     slot_name_sql TEXT := 'SELECT slot_name '
                           || 'FROM pg_catalog.pg_replication_slots '
                           || 'WHERE slot_type = '
-                          || quote_literal('logical');
+                          || quote_literal('logical')
+                          || ' AND temporary = false';
 
     create_slot_sql TEXT;
     advance_slot_sql TEXT;
@@ -190,7 +192,7 @@ AS
       SELECT pg_replication_slots INTO standby_slot_info
       FROM pg_catalog.pg_replication_slots
       WHERE slot_name = master_slot_info.slot_name
-      AND slot_type = 'logical';
+      AND slot_type = 'logical' and temporary=false;
 
       RAISE NOTICE 'standby slot: %, primary slot: %',
                     standby_slot_info,
