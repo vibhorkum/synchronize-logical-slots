@@ -63,10 +63,6 @@ psql -p 5432 -c "CREATE EXTENSION synchronize_logical_slots CASCADE;" -d postgre
 NOTICE:  installing required extension "dblink"
 CREATE EXTENSION
 
-psql -p 5432 -c "CREATE EXTENSION synchronize_logical_slots CASCADE;" -d edb
-NOTICE:  installing required extension "dblink"
-CREATE EXTENSION
-
 echo "shared_preload_libraries = '$libdir/synchronize_logical_slots_launcher'" >>$PGDATA/postgresql.conf
  
  systemctl edb-as-12 stop
