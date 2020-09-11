@@ -203,7 +203,9 @@ AS
       */
       IF standby_slot_info IS DISTINCT FROM master_slot_info
          AND
-         master_slot_info.confirmed_flush_lsn <= pg_last_wal_replay_lsn()
+         master_slot_info.confirmed_flush_lsn < pg_last_wal_replay_lsn()
+         AND
+         standby_slot_info.restart_lsn < master_slot_info.confirmed_flush_lsn
       THEN
             RAISE NOTICE 'Advancing slot % by %',
                           master_slot_info.slot_name::TEXT,
