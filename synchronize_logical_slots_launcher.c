@@ -38,7 +38,7 @@ static volatile sig_atomic_t got_sighup = false;
 
 /* GUC variables */
 static char *databasename = "postgres";
-static int interval = 1;
+static int interval = 60;
 
 /* Worker name */
 static char *worker_name = "synchronize_logical_slots_launcher";
@@ -74,7 +74,7 @@ synchronize_logical_slots_launcher_sighup(SIGNAL_ARGS)
 static void
 synchronize_logical_slots_launcher_build_query(StringInfoData *buf)
 {
-    appendStringInfo(buf,  "SELECT synchronize_logical_slots_launcher() "
+    appendStringInfo(buf,  "SELECT synchronize_logical_slots() "
                "FROM pg_catalog.pg_extension "
                "WHERE extname = 'synchronize_logical_slots';"
            );

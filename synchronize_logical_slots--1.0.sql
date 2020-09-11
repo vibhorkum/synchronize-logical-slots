@@ -1,6 +1,19 @@
 -- complain if script is sourced in psql, rather than via CREATE EXTENSION
 \echo Use "CREATE EXTENSION synchronize_logical_slots" to load this file. \quit
 
+CREATE FUNCTION sync_logical_launch(sql pg_catalog.text, dbname pg_catalog.text,
+					   queue_size pg_catalog.int4 DEFAULT 65536)
+    RETURNS pg_catalog.int4 STRICT
+	AS 'MODULE_PATHNAME' LANGUAGE C;
+
+CREATE FUNCTION sync_logical_result(pid pg_catalog.int4)
+    RETURNS SETOF pg_catalog.record STRICT
+	AS 'MODULE_PATHNAME' LANGUAGE C;
+
+CREATE FUNCTION sync_logical_detach(pid pg_catalog.int4)
+    RETURNS pg_catalog.void STRICT
+	AS 'MODULE_PATHNAME' LANGUAGE C;
+
 CREATE OR REPLACE FUNCTION error_msg_detail(TEXT, TEXT, TEXT, TEXT)
 RETURNS TEXT
 LANGUAGE sql
@@ -102,6 +115,8 @@ AS
                           || 'WHERE slot_type = '
                           || quote_literal('logical');
 
+    create_slot_sql TEXT;
+    advance_slot_sql TEXT;
     slot_exists BOOLEAN;
     master_slot_info pg_catalog.pg_replication_slots;
     standby_slot_info pg_catalog.pg_replication_slots;
@@ -156,12 +171,20 @@ AS
                     slot_exists;
 
       IF NOT slot_exists THEN
-        RAISE NOTICE 'Master slot=> %, plugin => % doesnt exists',
+          RAISE NOTICE 'Master slot=> %, plugin => % doesnt exists',
                             master_slot_info.slot_name::TEXT,
                             master_slot_info.plugin;
-        PERFORM  pg_catalog.pg_create_logical_replication_slot(
-                            master_slot_info.slot_name::TEXT,
-                            master_slot_info.plugin);
+          create_slot_sql := 'SELECT * FROM '
+                           || 'pg_catalog.pg_create_logical_replication_slot('
+                           || quote_literal(master_slot_info.slot_name::TEXT)
+                           || ','
+                           || quote_literal(master_slot_info.plugin)
+                           || ');';
+          PERFORM * FROM sync_logical_result(
+                           sync_logical_launch(
+                                       create_slot_sql,
+                                       master_slot_info.database
+                                        )) as foo(slot_name name, end_lsn pg_lsn);
       END IF;
 
       SELECT pg_replication_slots INTO standby_slot_info
@@ -178,15 +201,22 @@ AS
       */
       IF standby_slot_info IS DISTINCT FROM master_slot_info
          AND
-         master_slot_info.confirmed_flush_lsn <= pg_last_xlog_replay_location()
+         master_slot_info.confirmed_flush_lsn <= pg_last_wal_replay_lsn()
       THEN
             RAISE NOTICE 'Advancing slot % by %',
                           master_slot_info.slot_name::TEXT,
                           master_slot_info.confirmed_flush_lsn;
 
-            PERFORM pg_catalog.pg_replication_slot_advance(
-                        master_slot_info.slot_name::TEXT,
-                        master_slot_info.confirmed_flush_lsn);
+            advance_slot_sql := 'SELECT * FROM '
+                                || 'pg_catalog.pg_replication_slot_advance('
+                                || quote_literal(master_slot_info.slot_name::TEXT)
+                                || ','
+                                || quote_literal(master_slot_info.confirmed_flush_lsn)
+                                || ');';
+            PERFORM * FROM sync_logical_result(
+                             sync_logical_launch(advance_slot_sql, 
+                             master_slot_info.database
+                                        )) as foo(slot_name name, end_lsn pg_lsn);
       END IF;
 
     END LOOP;
@@ -225,66 +255,6 @@ $function$;
 
 COMMENT ON FUNCTION synchronize_logical_slots() IS 'Function for synchronizing the slots';
 
-CREATE OR REPLACE FUNCTION synchronize_logical_slots_launcher()
-RETURNS TEXT
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS
-$function$
-DECLARE
-    extension_exists BOOLEAN;
-    extension_sql TEXT := $SQL$ SELECT CASE WHEN COUNT(1) > 0 THEN true
-                                            ELSE false
-                                        END AS extension_status
-                                FROM pg_catalog.pg_extension
-                                WHERE extname = 'synchronize_logical_slots';
-                          $SQL$;
-    db_name TEXT;
-    result_message TEXT;
-BEGIN
-    FOR db_name IN SELECT datname
-                   FROM pg_catalog.pg_database
-                   WHERE datname NOT IN ('template1','template0')
-    LOOP
-            RAISE NOTICE '%', extension_sql;
-            SELECT extension_status INTO extension_exists
-            FROM sync_logical_result(
-                        sync_logical_launch( extension_sql,
-                                                           db_name
-                                                       )
-                                        ) AS foo (extension_status BOOLEAN);
-
-           IF extension_exists THEN
-                SELECT message INTO result_message
-                FROM sync_logical_result(
-                      sync_logical_launch(
-                          'SELECT synchronize_logical_slots()',
-                          db_name)
-                      ) AS foo(message TEXT);
-                RAISE NOTICE 'performing logical slots synchronization for %',
-                            db_name;
-           END IF;
-    END LOOP;
-    RETURN 'Executed the synchronize_logical_slots_launcher';
-END;
-$function$;
-
-COMMENT ON FUNCTION synchronize_logical_slots_launcher() IS 'A wrapper for synchronize logical slots';
-
-CREATE FUNCTION sync_logical_launch(sql pg_catalog.text, dbname pg_catalog.text,
-					   queue_size pg_catalog.int4 DEFAULT 65536)
-    RETURNS pg_catalog.int4 STRICT
-	AS 'MODULE_PATHNAME' LANGUAGE C;
-
-CREATE FUNCTION sync_logical_result(pid pg_catalog.int4)
-    RETURNS SETOF pg_catalog.record STRICT
-	AS 'MODULE_PATHNAME' LANGUAGE C;
-
-CREATE FUNCTION sync_logical_detach(pid pg_catalog.int4)
-    RETURNS pg_catalog.void STRICT
-	AS 'MODULE_PATHNAME' LANGUAGE C;
-
-
 REVOKE ALL ON FUNCTION sync_logical_launch(pg_catalog.text, pg_catalog.text, pg_catalog.int4)
 	FROM public;
 REVOKE ALL ON FUNCTION sync_logical_result(pg_catalog.int4)
@@ -293,5 +263,4 @@ REVOKE ALL ON FUNCTION sync_logical_detach(pg_catalog.int4)
 	FROM public;
 REVOKE ALL ON FUNCTION is_standby_synchronous() FROM PUBLIC;
 REVOKE ALL ON FUNCTION synchronize_logical_slots() FROM PUBLIC;
-REVOKE ALL ON FUNCTION synchronize_logical_slots_launcher() FROM PUBLIC;
-
+REVOKE ALL ON FUNCTION error_msg_detail(TEXT, TEXT, TEXT, TEXT) FROM PUBLIC;
