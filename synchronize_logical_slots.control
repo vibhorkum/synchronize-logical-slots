@@ -2,6 +2,7 @@
 comment = 'utility for logical slot synchronization on standby'
 default_version = '1.0'
 module_pathname = '$libdir/synchronize_logical_slots'
-relocatable = true
+relocatable = false
+superuser = true
 requires = 'dblink'
 
