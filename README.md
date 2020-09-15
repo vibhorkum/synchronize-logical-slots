@@ -46,7 +46,7 @@ systemctl edb-as-12 start
 ```
 5. Connect to the postgres database and grant execute on function `primary_checkpoint()` to replication user
 ```
-psql -U enterprisedb -c "GRANT EXECUTE ON FUNCTION primary_checkpoint() TO <replication user>;
+psql -U enterprisedb -c "GRANT EXECUTE ON FUNCTION primary_checkpoint() TO <replication user>;" -d postgres
 ```
 # Example
 
