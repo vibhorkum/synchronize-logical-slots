@@ -31,10 +31,9 @@ with_llvm=false make -e
 with_llvm=false make install -e
 ```
 
-2. Connect to the `postgres` and databases which has logical replication slot and execute following command to enable to module
+2. Connect to the `postgres` which has logical replication slot and execute following command to enable to module
 ```
 psql -U enterprisedb -c "CREATE EXTENSION synchronize_logical_slots CASCADE;" -d postgres
-psql -U enterprisedb -c "GRANT EXECUTE ON FUNCTION primary_checkpoint() TO <replication user>;
 ```
 3. Update the following parameters in postgresql.conf for master and synchronous standbys:
 ```
@@ -45,7 +44,10 @@ shared_preload_libraries = '$libdir/synchronize_logical_slots_launcher' # sync_l
 systemctl edb-as-12 stop
 systemctl edb-as-12 start
 ```
-
+5. Connect to the postgres database and grant execute on function `primary_checkpoint()` to replication user
+```
+psql -U enterprisedb -c "GRANT EXECUTE ON FUNCTION primary_checkpoint() TO <replication user>;
+```
 # Example
 
 ```
