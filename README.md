@@ -35,11 +35,11 @@ with_llvm=false make install -e
 ```
 psql -U enterprisedb -c "CREATE EXTENSION synchronize_logical_slots CASCADE;" -d postgres
 ```
-3. Update the following parameters in postgresql.conf for master and synchronous standbys:
+3. Update the following parameters in postgresql.conf for primary and synchronous standbys:
 ```
 shared_preload_libraries = '$libdir/synchronize_logical_slots_launcher' # sync_logical_slot library for background worker
 ```
-4. Restart the master and synchronous standby service
+4. Restart the primary and synchronous standby service
 ```
 systemctl edb-as-12 stop
 systemctl edb-as-12 start
@@ -71,7 +71,7 @@ echo "shared_preload_libraries = '$libdir/synchronize_logical_slots_launcher'" >
  systemctl edb-as-12 stop
  systemctl edb-as-12 start
  ```
-And enable the following parameter on master and standbys:
+And enable the following parameter on primary and standbys:
 ```
 echo "shared_preload_libraries = '$libdir/synchronize_logical_slots_launcher'" >>$PGDATA/postgresql.conf
  ```
