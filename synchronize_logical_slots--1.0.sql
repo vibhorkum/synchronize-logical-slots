@@ -286,7 +286,7 @@ AS
               if slot doesn't exists then re-create
             */
             IF NOT slot_exists THEN
-                RAISE NOTICE 'Master slot=> %, plugin => % doesnt exists',
+                RAISE NOTICE 'Primary slot=> %, plugin => % doesnt exists',
                               primary_slot_info.slot_name::TEXT,
                               primary_slot_info.plugin;
                 SELECT create_logical_slot(
