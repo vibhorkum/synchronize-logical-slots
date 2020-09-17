@@ -261,6 +261,7 @@ AS
                                    primary_slot_info.slot_name,
                                    primary_slot_info.plugin,
                                    primary_slot_info.database) INTO bg_pid;
+		  PERFORM pg_catalog.pg_sleep(2);
                   PERFORM * FROM dblink( primary_conninfo,
                                          checkpoint_sql)
                             AS foo( msg TEXT );
@@ -293,6 +294,7 @@ AS
                                  primary_slot_info.slot_name,
                                  primary_slot_info.plugin,
                                  primary_slot_info.database) INTO bg_pid;
+		PERFORM pg_catalog.pg_sleep(2);
                 PERFORM * FROM dblink( primary_conninfo,
                                        checkpoint_sql)
                           AS foo(msg TEXT);
