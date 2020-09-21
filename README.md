@@ -13,6 +13,7 @@ This module provides a mechanism to synchronize the logical replication slots to
 6. Set max_worker_processes parameter to allow background worker in EPAS.
 7. Make sure you have pg_hba entry for standbys on primary for replication user to connect to all databases.
 8. Make sure replication user has `pg_read_all_stats` privileges.
+9. Make sure you have `hot_standby_feedback = on` on standbys.
 
 # Installation
 
