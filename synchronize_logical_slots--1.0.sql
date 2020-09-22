@@ -1,26 +1,26 @@
 -- complain if script is sourced in psql, rather than via CREATE EXTENSION
 \echo Use "CREATE EXTENSION synchronize_logical_slots" to load this file. \quit
 
-CREATE OR REPLACE FUNCTION sync_logical_launch(sql pg_catalog.text, dbname pg_catalog.text,
+CREATE FUNCTION sync_logical_launch(sql pg_catalog.text, dbname pg_catalog.text,
 					   queue_size pg_catalog.int4 DEFAULT 65536)
     RETURNS pg_catalog.int4 STRICT
   AS 'MODULE_PATHNAME' LANGUAGE C;
 
 COMMENT ON FUNCTION sync_logical_launch(TEXT, TEXT, pg_catalog.int4) IS 'Function to perform asynchronous execution';
 
-CREATE OR REPLACE FUNCTION sync_logical_result(pid pg_catalog.int4)
+CREATE FUNCTION sync_logical_result(pid pg_catalog.int4)
     RETURNS SETOF pg_catalog.record STRICT
   AS 'MODULE_PATHNAME' LANGUAGE C;
 
 COMMENT ON FUNCTION sync_logical_result(pg_catalog.int4) IS 'Function to get the result of sync_logical_launch pid';
 
-CREATE OR REPLACE FUNCTION sync_logical_detach(pid pg_catalog.int4)
+CREATE FUNCTION sync_logical_detach(pid pg_catalog.int4)
     RETURNS pg_catalog.void STRICT
   AS 'MODULE_PATHNAME' LANGUAGE C;
 
 COMMENT ON FUNCTION sync_logical_detach(pg_catalog.int4) IS 'Function to close the process with discarding the results';
 
-CREATE OR REPLACE FUNCTION create_logical_slot(slot_name name, plugin name, dbname text)
+CREATE FUNCTION create_logical_slot(slot_name name, plugin name, dbname text)
 RETURNS INTEGER
 LANGUAGE plpgsql
 AS
@@ -44,7 +44,7 @@ $function$;
 COMMENT ON FUNCTION create_logical_slot(name, name,text) IS 'Function to create logical slot asynchronousily';
 
 
-CREATE OR REPLACE FUNCTION advance_logical_slot(slot_name name, upto_lsn pg_lsn, dbname text)
+CREATE FUNCTION advance_logical_slot(slot_name name, upto_lsn pg_lsn, dbname text)
 RETURNS INTEGER
 LANGUAGE plpgsql
 AS
@@ -67,7 +67,7 @@ $function$;
 
 COMMENT ON FUNCTION advance_logical_slot(name, pg_lsn, text) IS 'FUNCTION to advance logical slot asynchronously';
 
-CREATE OR REPLACE FUNCTION primary_checkpoint()
+CREATE FUNCTION primary_checkpoint()
 RETURNS TEXT
 SECURITY DEFINER
 LANGUAGE SQL
@@ -83,7 +83,7 @@ $SQL$;
 
 COMMENT ON FUNCTION primary_checkpoint() IS 'Function to perform checkpoint';
 
-CREATE OR REPLACE FUNCTION error_msg_detail(TEXT, TEXT, TEXT, TEXT)
+CREATE FUNCTION error_msg_detail(TEXT, TEXT, TEXT, TEXT)
 RETURNS TEXT
 LANGUAGE sql
 AS
@@ -123,7 +123,7 @@ COMMENT ON FUNCTION error_msg_detail(TEXT, TEXT, TEXT, TEXT) IS 'Function to pri
 /*
  function for verifying if standby is synchronous standby or not
 */
-CREATE OR REPLACE FUNCTION is_standby_synchronous()
+CREATE FUNCTION is_standby_synchronous()
 RETURNS BOOLEAN
 SECURITY DEFINER
 LANGUAGE plpgsql
@@ -169,7 +169,7 @@ COMMENT ON FUNCTION is_standby_synchronous() IS 'Function to check if current st
 /*
  function for synchronizing the logical slots
 */
-CREATE OR REPLACE FUNCTION synchronize_logical_slots()
+CREATE FUNCTION synchronize_logical_slots()
 RETURNS TEXT
 LANGUAGE plpgsql
 AS
